@@ -1,0 +1,19 @@
+module.exports = {
+  extends: ['next/core-web-vitals'],
+  rules: {
+    'at-rule-no-unknown': [
+      true,
+      {
+        ignoreAtRules: ['tailwind', 'apply', 'variants', 'responsive', 'screen', 'layer'],
+      },
+    ],
+  },
+  overrides: [
+    {
+      files: ['*.css', '**/*.css'],
+      rules: {
+        'at-rule-no-unknown': null,
+      },
+    },
+  ],
+}
