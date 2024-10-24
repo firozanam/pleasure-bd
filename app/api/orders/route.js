@@ -3,41 +3,71 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { getDatabase } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { sendOrderConfirmationEmail, sendAdminOrderNotificationEmail } from '@/lib/mailer';
 
 export async function POST(request) {
     try {
         const db = await getDatabase();
         const session = await getServerSession(authOptions);
-        const { name, address, mobile, items, total } = await request.json();
+        const { name, shippingAddress, mobile, items, total, email, status, userId } = await request.json();
+
+        console.log('Received order data:', { name, shippingAddress, mobile, items, total, email, status, userId });
 
         // Fetch product details for each item
         const itemsWithDetails = await Promise.all(items.map(async (item) => {
             const product = await db.collection('products').findOne({ _id: new ObjectId(item.id) });
             return {
-                product: item.id,
-                name: product.name,
+                id: item.id,
+                name: item.name,
                 quantity: item.quantity,
-                price: product.price,
-                image: product.image
+                price: item.price,
+                image: item.image
             };
         }));
 
         const order = {
-            user: session?.user?.id,
+            userId: userId || null,
             name,
-            address,
+            email,
+            shippingAddress,
             mobile,
             items: itemsWithDetails,
             total,
+            status: status || 'Pending',
             createdAt: new Date()
         };
 
         const result = await db.collection('orders').insertOne(order);
+        const newOrder = { ...order, _id: result.insertedId };
 
-        return NextResponse.json({ message: 'Order created successfully', orderId: result.insertedId });
+        let emailErrors = [];
+
+        // Send order confirmation email to customer
+        if (email) {
+            try {
+                await sendOrderConfirmationEmail(newOrder);
+            } catch (emailError) {
+                console.error('Failed to send order confirmation email:', emailError);
+                emailErrors.push('Failed to send order confirmation email');
+            }
+        }
+
+        // Send order notification email to admin
+        try {
+            await sendAdminOrderNotificationEmail(newOrder);
+        } catch (emailError) {
+            console.error('Failed to send admin order notification email:', emailError);
+            emailErrors.push('Failed to send admin order notification email');
+        }
+
+        return NextResponse.json({ 
+            message: 'Order created successfully', 
+            orderId: result.insertedId,
+            emailErrors: emailErrors.length > 0 ? emailErrors : undefined
+        });
     } catch (error) {
         console.error('Error creating order:', error);
-        return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to create order', details: error.message }, { status: 500 });
     }
 }
 

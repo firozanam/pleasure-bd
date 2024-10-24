@@ -54,8 +54,6 @@ pleasure-bd/
 │   ├── account
 │   │   └── page.js
 │   ├── admin
-│   │   ├── featured-products
-│   │   │   └── page.js
 │   │   ├── home-settings
 │   │   │   └── page.js
 │   │   ├── layout.js
@@ -80,6 +78,7 @@ pleasure-bd/
 │   │   │   ├── stats
 │   │   │   │   └── route.js
 │   │   │   └── users
+│   │   │       ├── [id]
 │   │   │       └── route.js
 │   │   ├── auth
 │   │   │   ├── [...nextauth]
@@ -138,10 +137,11 @@ pleasure-bd/
 │   │   └── page.js
 │   └── register
 │       └── page.js
-├── app.js
 ├── components
 │   ├── AddToCartButton.js
+│   ├── AdminLayout.js
 │   ├── AsyncWrapper.js
+│   ├── AuthDialog.js
 │   ├── Cart.js
 │   ├── CartContext.js
 │   ├── CartSummary.js
@@ -159,6 +159,7 @@ pleasure-bd/
 │   ├── ReviewForm.js
 │   ├── Reviews.js
 │   ├── SearchFilter.js
+│   ├── StatusBadge.js
 │   └── ui
 │       ├── Toaster.js
 │       ├── button.js
@@ -169,6 +170,7 @@ pleasure-bd/
 │       ├── input.js
 │       ├── label.jsx
 │       ├── select.js
+│       ├── select.jsx
 │       ├── table.jsx
 │       ├── textarea.jsx
 │       ├── toast-context.js
@@ -183,6 +185,7 @@ pleasure-bd/
 │   └── useForceUpdate.js
 ├── jsconfig.json
 ├── lib
+│   ├── constants.js
 │   ├── mailer.js
 │   ├── mongodb.js
 │   └── utils.js
@@ -202,6 +205,7 @@ pleasure-bd/
 ├── postcss.config.mjs
 ├── public
 │   └── images
+│       ├── 10c89f1d-eb3a-4482-8340-40dab6bc2c0c.webp
 │       ├── 1729499089111-product1.jpg
 │       ├── 1729499179055-product1.jpg
 │       ├── 1729499819702-shoes.webp
@@ -215,6 +219,8 @@ pleasure-bd/
 │       ├── 1729630239580-9fa427c9a9fbf9af41377f0895ff02cf.jpg_720x720q80.jpg_.webp
 │       ├── 1729631012532-Sd1d5dbec057a444b8ae6467cd743dcfey.jpg_720x720q80.jpg_.webp
 │       ├── 1729636600720-1f551943e2ee4eabd92986569c14f577.jpg_720x720q80.jpg_.webp
+│       ├── 7f4739ef-d3f5-4d37-9698-cb738d5be790.webp
+│       ├── cd5e5bcd-4a7f-4375-bc2a-846a962b05bb.webp
 │       ├── hero-bg.jpg
 │       ├── p3.jpg
 │       ├── placeholder.jpg

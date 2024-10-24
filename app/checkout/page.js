@@ -16,7 +16,7 @@ import AuthDialog from '@/components/AuthDialog'
 export default function CheckoutPage() {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
-    const [address, setAddress] = useState('')
+    const [shippingAddress, setShippingAddress] = useState('')
     const [phone, setPhone] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isGuest, setIsGuest] = useState(false)
@@ -63,12 +63,13 @@ export default function CheckoutPage() {
                     quantity: item.quantity,
                     image: item.image
                 })),
-                shippingAddress: address,
+                shippingAddress,
                 name,
-                email: email || undefined, // Only include email if it's provided
+                email,
                 mobile: phone,
                 total: getCartTotal(),
-                isGuest
+                status: 'Pending',
+                userId: session?.user?.id || null
             }
 
             const response = await fetch('/api/orders', {
@@ -143,11 +144,11 @@ export default function CheckoutPage() {
                             />
                         </div>
                         <div>
-                            <Label htmlFor="address">Address</Label>
+                            <Label htmlFor="shippingAddress">Shipping Address</Label>
                             <Textarea
-                                id="address"
-                                value={address}
-                                onChange={(e) => setAddress(e.target.value)}
+                                id="shippingAddress"
+                                value={shippingAddress}
+                                onChange={(e) => setShippingAddress(e.target.value)}
                                 required
                             />
                         </div>

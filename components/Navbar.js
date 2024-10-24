@@ -41,7 +41,7 @@ export default function Navbar() {
                         {session ? (
                             <>
                                 <Button asChild variant="outline">
-                                    <Link href="/profile">Profile</Link>
+                                    <Link href="/account">Account</Link>
                                 </Button>
                                 <Button asChild>
                                     <Link href="/api/auth/signout">Sign Out</Link>

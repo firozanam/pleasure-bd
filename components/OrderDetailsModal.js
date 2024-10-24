@@ -76,38 +76,40 @@ export default function OrderDetailsModal({ order, isOpen, onClose, isAdmin = fa
                         )}
                     </div>
                     
-                    <h3 className="font-bold text-lg mt-4 mb-2 text-gray-900">Shipping Details:</h3>
-                    <p><span className="font-semibold">Name:</span> {order.name}</p>
-                    <p><span className="font-semibold">Address:</span> {order.address}</p>
-                    <p><span className="font-semibold">Mobile:</span> {order.mobile}</p>
-                    
-                    {isAdmin && order.user && (
-                        <>
-                            <h3 className="font-bold text-lg mt-4 mb-2 text-gray-900">Customer Details:</h3>
-                            <p><span className="font-semibold">Customer ID:</span> {order.user._id}</p>
-                            <p><span className="font-semibold">Name:</span> {order.user.name}</p>
-                            <p><span className="font-semibold">Email:</span> {order.user.email}</p>
-                        </>
-                    )}
-                    
-                    <h3 className="font-bold text-lg mt-4 mb-2 text-gray-900">Items:</h3>
-                    <ul className="space-y-2">
-                        {order.items.map((item, index) => (
-                            <li key={index} className="flex items-center">
-                                <Image
-                                    src={item.image || '/images/placeholder.png'}
-                                    alt={item.name}
-                                    width={50}
-                                    height={50}
-                                    className="mr-2 rounded"
-                                />
-                                <span className="flex-grow">
-                                    <span className="font-semibold">{item.name}</span><br />
-                                    Quantity: {item.quantity} - Price: {formatCurrency(item.price)}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="mt-4">
+                        <h3 className="font-bold text-lg mt-4 mb-2 text-gray-900">Shipping Details:</h3>
+                        <p><span className="font-semibold">Name:</span> {order.name}</p>
+                        <p><span className="font-semibold">Address:</span> {order.shippingAddress}</p>
+                        <p><span className="font-semibold">Mobile:</span> {order.mobile}</p>
+                        
+                        {isAdmin && order.userId && (
+                            <>
+                                <h3 className="font-bold text-lg mt-4 mb-2 text-gray-900">Customer Details:</h3>
+                                <p><span className="font-semibold">Customer ID:</span> {order.userId}</p>
+                                <p><span className="font-semibold">Name:</span> {order.name}</p>
+                                <p><span className="font-semibold">Email:</span> {order.email}</p>
+                            </>
+                        )}
+                        
+                        <h3 className="font-bold text-lg mt-4 mb-2 text-gray-900">Items:</h3>
+                        <ul className="space-y-2">
+                            {order.items.map((item, index) => (
+                                <li key={index} className="flex items-center">
+                                    <Image
+                                        src={item.image || '/images/placeholder.png'}
+                                        alt={item.name}
+                                        width={50}
+                                        height={50}
+                                        className="mr-2 rounded"
+                                    />
+                                    <span className="flex-grow">
+                                        <span className="font-semibold">{item.name}</span><br />
+                                        Quantity: {item.quantity} - Price: {formatCurrency(item.price)}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </DialogDescription>
                 <Button onClick={onClose} className="mt-4 w-full">Close</Button>
             </DialogContent>
