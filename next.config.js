@@ -1,9 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        domains: ['localhost', 'pleasurebd.com', 'img.drz.lazcdn.com'],
+        domains: ['localhost', 'pleasurebd.com'],
         dangerouslyAllowSVG: true,
         contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: '**',
+            },
+        ],
     },
     reactStrictMode: true,
     webpack: (config, { isServer }) => {
@@ -14,9 +20,6 @@ const nextConfig = {
             };
         }
         return config;
-    },
-    onError: (error, errorInfo) => {
-        console.log('NextJS Error:', error, errorInfo);
     },
 }
 

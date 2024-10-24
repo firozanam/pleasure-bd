@@ -6,6 +6,7 @@ import { useCart } from '@/contexts/CartContext'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { useToast } from "@/components/ui/toast-context"
+import SafeImage from './SafeImage'
 
 export default function ProductCard({ product }) {
     const [imgSrc, setImgSrc] = useState(product.image || '/images/placeholder.png')
@@ -42,7 +43,7 @@ export default function ProductCard({ product }) {
     return (
         <div className="bg-white shadow-md rounded-lg overflow-hidden flex flex-col h-full">
             <div className="relative w-full pt-[100%]">
-                <Image
+                <SafeImage
                     src={imgSrc}
                     alt={product.name}
                     layout="fill"

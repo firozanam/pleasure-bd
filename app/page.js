@@ -27,6 +27,11 @@ export default function Home() {
     "/images/placeholder.png"
   );
   const [quantity, setQuantity] = useState(1);
+  const [videoUrl, setVideoUrl] = useState("https://www.youtube.com/embed/P2gW89OxtJY?si=vw-kbKkYT2MSjon8");
+  const [heroHeading, setHeroHeading] = useState("100% সিলিকনের তৈরি অরিজিনাল ম্যাজিক কনডম");
+  const [heroParagraph, setHeroParagraph] = useState("যৌন দুর্বলতা থেকে মুক্তি পেতে এবং দীর্ঘক্ষণ সঙ্গম করতে পারবেন, ৩০-৪০ মিনিট পর্যন্ত সঙ্গম করতে পারবেন।");
+  const [heroImage, setHeroImage] = useState("/images/hero-bg.jpg");
+  const [heroImageError, setHeroImageError] = useState(false);
 
   // Hooks
   const { toast } = useToast();
@@ -70,6 +75,11 @@ export default function Home() {
           featuredProductIds.includes(product._id)
         );
         setFeaturedProducts(featuredProducts);
+
+        setVideoUrl(settingsData.videoUrl || "https://www.youtube.com/embed/P2gW89OxtJY?si=vw-kbKkYT2MSjon8");
+        setHeroHeading(settingsData.heroHeading || "100% সিলিকনের তৈরি অরিজিনাল ম্যাজিক কনডম");
+        setHeroParagraph(settingsData.heroParagraph || "যৌন দুর্বলতা থেকে মুক্তি পেতে এবং দীর্ঘক্ষণ সঙ্গম করতে পারবেন, ৩০-৪০ মিনিট পর্যন্ত সঙ্গম করতে পারবেন।");
+        setHeroImage(settingsData.heroImage || "/images/hero-bg.jpg");
       } catch (error) {
         console.error("Error fetching data:", error);
         toast({
@@ -142,6 +152,13 @@ export default function Home() {
     }
   };
 
+  const getProxiedImageUrl = (url) => {
+    if (url.startsWith('/')) {
+      return url;
+    }
+    return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -151,26 +168,31 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-background text-foreground">
+    <div className="bg-background text-foreground mb-4"> {/* Added pt-5 for 20px top padding */}
       {/* Hero Section */}
-      <section className="relative h-[600px] w-full">
+      <section className="relative h-[450px] w-full">
         <Image
-          src="/images/hero-bg.jpg"
+          src={heroImageError ? "/images/hero-bg.jpg" : getProxiedImageUrl(heroImage)}
           alt="Pleasure BD Hero"
           fill
           style={{ objectFit: "cover" }}
           priority
+          onError={() => {
+            setHeroImageError(true);
+            toast({
+              title: "Error",
+              description: "Failed to load hero image. Using default image.",
+              variant: "destructive",
+            });
+          }}
         />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-start">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground mb-6">
-              100% সিলিকনের তৈরি
-              <br />
-              অরিজিনাল ম্যাজিক কনডম
+              {heroHeading}
             </h1>
             <p className="text-xl md:text-2xl text-primary-foreground mb-10 max-w-2xl">
-              যৌন দুর্বলতা থেকে মুক্তি পেতে এবং দীর্ঘক্ষণ সঙ্গম করতে পারবেন,
-              ৩০-৪০ মিনিট পর্যন্ত সঙ্গম করতে পারবেন।
+              {heroParagraph}
             </p>
             <Button
               asChild
@@ -183,7 +205,8 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+      {/* Main content wrapper with margin */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Featured Products Section */}
         <section className="my-12">
           <h2 className="text-3xl font-bold mb-6">Featured Products</h2>
@@ -207,7 +230,7 @@ export default function Home() {
           </h2>
           <p className="text-xl mb-10 text-center max-w-3xl mx-auto">
             আপনি কি আপনার স্ত্রীকে খুশি দেখে চান? আপনি ক আপনার স্ত্রীকে আরও
-            আনন্দ দিত চান? তাহলে সাধারণ কনডমের রিবর্তে ম্যাজিক কনডম ব্যহার করুন
+            আনন্দ দিত চান? তাহলে সাধারণ কনডমের রিবর্তে ম্যাজিক কনডম ব্যহার কুন
             (এই কনডমটি সিলিকন দিয়ে তৈরি)।
           </p>
           <ul className="space-y-6 max-w-2xl mx-auto">
@@ -251,25 +274,25 @@ export default function Home() {
 
         {/* Video Section */}
         <section>
+        <h4 className="mt-6 text-center text-xl mb-4">
+            আমাদের ম্যাজিক কনডম সম্পর্কে আরও জানুন এবং এর অসাধারণ সুবিধাগুলি
+            দেখুন।
+          </h4>
           <div className="aspect-w-16 aspect-h-9 rounded-3xl overflow-hidden">
             <iframe
-              src="https://www.youtube.com/embed/P2gW89OxtJY?si=vw-kbKkYT2MSjon8"
+              src={videoUrl}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             ></iframe>
           </div>
-          <p className="mt-6 text-center text-xl">
-            আমাদের ম্যাজিক কনডম সম্পর্কে আরও জানুন এবং এর অসাধারণ সুবিধাগুলি
-            দেখুন।
-          </p>
         </section>
 
         {/* Order Form Section */}
         {homePageProduct ? (
           <section
             id="order-form"
-            className="bg-card text-card-foreground rounded-3xl p-12 md:p-20 shadow-lg mb-24"
+            className="bg-card text-card-foreground rounded-3xl p-12 md:p-20 shadow-lg mb-4"
           >
             <h2 className="text-4xl font-bold mb-6 text-center">অর্ডার ফর্ম</h2>
             <div className="flex flex-col md:flex-row gap-12 mb-5"> {/* Added mb-5 here for 20px bottom margin */}

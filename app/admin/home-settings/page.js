@@ -8,6 +8,15 @@ import { formatCurrency } from '@/lib/utils'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+
+const getProxiedImageUrl = (url) => {
+  if (url.startsWith('/')) {
+    return url;
+  }
+  return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+};
 
 export default function AdminHomeSettingsPage() {
     const [loading, setLoading] = useState(true)
@@ -15,6 +24,10 @@ export default function AdminHomeSettingsPage() {
     const [featuredProductIds, setFeaturedProductIds] = useState([])
     const [currentProduct, setCurrentProduct] = useState(null)
     const [products, setProducts] = useState([])
+    const [videoUrl, setVideoUrl] = useState('')
+    const [heroHeading, setHeroHeading] = useState('')
+    const [heroParagraph, setHeroParagraph] = useState('')
+    const [heroImage, setHeroImage] = useState('')
     const { toast } = useToast()
 
     useEffect(() => {
@@ -29,6 +42,10 @@ export default function AdminHomeSettingsPage() {
             const data = await res.json()
             setFeaturedProductId(data.featuredProductId || '')
             setFeaturedProductIds(data.featuredProductIds || [])
+            setVideoUrl(data.videoUrl || '')
+            setHeroHeading(data.heroHeading || '')
+            setHeroParagraph(data.heroParagraph || '')
+            setHeroImage(data.heroImage || '')
             if (data.featuredProductId) {
                 fetchFeaturedProduct(data.featuredProductId)
             }
@@ -83,7 +100,7 @@ export default function AdminHomeSettingsPage() {
             const res = await fetch('/api/settings/home', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ featuredProductId, featuredProductIds }),
+                body: JSON.stringify({ featuredProductId, featuredProductIds, videoUrl, heroHeading, heroParagraph, heroImage }),
             })
             if (!res.ok) throw new Error('Failed to update settings')
             toast({
@@ -121,6 +138,22 @@ export default function AdminHomeSettingsPage() {
         setFeaturedProductIds(featuredProductIds.filter(productId => productId !== id))
     }
 
+    const validateImageUrl = (url) => {
+        return url.match(/\.(jpeg|jpg|gif|png)$/) != null;
+    };
+
+    const handleHeroImageChange = (e) => {
+        const url = e.target.value;
+        setHeroImage(url);
+        if (!validateImageUrl(url)) {
+            toast({
+                title: "Warning",
+                description: "Please enter a valid image URL (starting with / for local images or http:// or https:// for external images)",
+                variant: "warning",
+            });
+        }
+    };
+
     if (loading) {
         return <div className="flex justify-center items-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -133,7 +166,7 @@ export default function AdminHomeSettingsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Main Featured Product</CardTitle>
+                        <CardTitle>Home Page Settings</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -209,6 +242,58 @@ export default function AdminHomeSettingsPage() {
                                     })}
                                 </div>
                             </div>
+                            <div>
+                                <label htmlFor="videoUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                                    YouTube Video URL
+                                </label>
+                                <Input
+                                    id="videoUrl"
+                                    type="text"
+                                    value={videoUrl}
+                                    onChange={(e) => setVideoUrl(e.target.value)}
+                                    placeholder="Enter YouTube embed URL"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="heroHeading" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Hero Heading
+                                </label>
+                                <Input
+                                    id="heroHeading"
+                                    type="text"
+                                    value={heroHeading}
+                                    onChange={(e) => setHeroHeading(e.target.value)}
+                                    placeholder="Enter hero heading"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="heroParagraph" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Hero Paragraph
+                                </label>
+                                <Textarea
+                                    id="heroParagraph"
+                                    value={heroParagraph}
+                                    onChange={(e) => setHeroParagraph(e.target.value)}
+                                    placeholder="Enter hero paragraph"
+                                    rows={3}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="heroImage" className="block text-sm font-medium text-gray-700 mb-1">
+                                    Hero Image URL
+                                </label>
+                                <Input
+                                    id="heroImage"
+                                    type="text"
+                                    value={heroImage}
+                                    onChange={handleHeroImageChange}
+                                    placeholder="Enter hero image URL (e.g., /images/hero.jpg or https://example.com/image.jpg)"
+                                />
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Enter a local image path (starting with /) or a full URL (starting with http:// or https://).
+                                    For best results, use local images or images from stable hosting services.
+                                </p>
+                            </div>
                             <Button type="submit" className="w-full" disabled={loading}>
                                 {loading ? (
                                     <>
@@ -231,7 +316,7 @@ export default function AdminHomeSettingsPage() {
                             <div className="space-y-4">
                                 <div className="relative w-1/1 aspect-square rounded-lg overflow-hidden">
                                     <Image
-                                        src={currentProduct.image}
+                                        src={getProxiedImageUrl(currentProduct.image)}
                                         alt={currentProduct.name}
                                         objectFit="cover"
                                         className="rounded-md"

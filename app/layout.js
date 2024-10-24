@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { CartProvider } from '@/contexts/CartContext'
 import { ToastProvider } from '@/components/ui/toast-context'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,7 +23,9 @@ export default function RootLayout({ children }) {
             <ToastProvider>
               <Navbar />
               <main className="flex-1 flex flex-col bg-background">
-                {children}
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
               </main>
               <Footer />
             </ToastProvider>
