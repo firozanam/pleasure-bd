@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar'
-import { LayoutDashboard, Package, ShoppingCart, Users } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingCart, Users, FileImage } from 'lucide-react'
 
 export default function AdminLayout({ children }) {
     const pathname = usePathname()
@@ -15,6 +15,7 @@ export default function AdminLayout({ children }) {
         { name: 'Home Setting', icon: <Package size={20} />, path: '/admin/home-settings' },
         { name: 'Orders', icon: <ShoppingCart size={20} />, path: '/admin/orders' },
         { name: 'Users', icon: <Users size={20} />, path: '/admin/users' },
+        { name: 'File Manager', icon: <FileImage size={20} />, path: '/admin/filemanager' },
     ]
 
     return (

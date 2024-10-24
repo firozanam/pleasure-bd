@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useCart } from '@/contexts/CartContext'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { ShoppingCart } from 'lucide-react'
 
 export default function Navbar() {
     const { data: session } = useSession()
@@ -33,9 +34,12 @@ export default function Navbar() {
                         </div>
                     </div>
                     <div className="hidden md:flex items-center space-x-3">
-                        <Button asChild variant="outline">
-                            <Link href="/cart">
-                                Cart ({cartItemCount})
+                        <Button asChild variant="outline" className="relative">
+                            <Link href="/cart" className="flex items-center">
+                                <ShoppingCart className="h-5 w-5 mr-1" />
+                                <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                    {cartItemCount}
+                                </span>
                             </Link>
                         </Button>
                         {session ? (

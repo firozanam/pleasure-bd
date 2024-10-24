@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import dbConnect from '@/lib/mongodb';
+import { dbConnect } from '@/lib/mongodb';
 import User from '@/models/User';
 
 export async function POST(req) {
@@ -17,14 +17,15 @@ export async function POST(req) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create new user
-        const user = new User({
+        // Create new user using the User model
+        const newUser = new User({
             name,
             email,
             password: hashedPassword,
+            isAdmin: false, // Set default value
         });
 
-        await user.save();
+        await newUser.save();
 
         return NextResponse.json({ message: 'User registered successfully' }, { status: 201 });
     } catch (error) {

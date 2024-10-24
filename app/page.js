@@ -30,7 +30,7 @@ export default function Home() {
   const [videoUrl, setVideoUrl] = useState("https://www.youtube.com/embed/P2gW89OxtJY?si=vw-kbKkYT2MSjon8");
   const [heroHeading, setHeroHeading] = useState("100% সিলিকনের তৈরি অরিজিনাল ম্যাজিক কনডম");
   const [heroParagraph, setHeroParagraph] = useState("যৌন দুর্বলতা থেকে মুক্তি পেতে এবং দীর্ঘক্ষণ সঙ্গম করতে পারবেন, ৩০-৪০ মিনিট পর্যন্ত সঙ্গম করতে পারবেন।");
-  const [heroImage, setHeroImage] = useState("/images/hero-bg.jpg");
+  const [heroImage, setHeroImage] = useState("/images/hero-bg.png");
   const [heroImageError, setHeroImageError] = useState(false);
 
   // Hooks
@@ -79,7 +79,7 @@ export default function Home() {
         setVideoUrl(settingsData.videoUrl || "https://www.youtube.com/embed/P2gW89OxtJY?si=vw-kbKkYT2MSjon8");
         setHeroHeading(settingsData.heroHeading || "100% সিলিকনের তৈরি অরিজিনাল ম্যাজিক কনডম");
         setHeroParagraph(settingsData.heroParagraph || "যৌন দুর্বলতা থেকে মুক্তি পেতে এবং দীর্ঘক্ষণ সঙ্গম করতে পারবেন, ৩০-৪০ মিনিট পর্যন্ত সঙ্গম করতে পারবেন।");
-        setHeroImage(settingsData.heroImage || "/images/hero-bg.jpg");
+        setHeroImage(settingsData.heroImage || "/images/hero-bg.png");
       } catch (error) {
         console.error("Error fetching data:", error);
         toast({
@@ -172,7 +172,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[450px] w-full">
         <Image
-          src={heroImageError ? "/images/hero-bg.jpg" : getProxiedImageUrl(heroImage)}
+          src={heroImageError ? "/images/hero-bg.png" : getProxiedImageUrl(heroImage)}
           alt="Pleasure BD Hero"
           fill
           style={{ objectFit: "cover" }}
@@ -224,7 +224,7 @@ export default function Home() {
         </section>
 
         {/* Why Choose Us Section */}
-        <section className="bg-purple-900 text-white rounded-3xl p-12 md:p-20">
+        <section className="bg-purple-900 text-white rounded-3xl p-12 md:p-10">
           <h2 className="text-4xl font-bold mb-10 text-center">
             কেন নিবেন এই ম্যাজিক কনডম?
           </h2>
@@ -292,7 +292,7 @@ export default function Home() {
         {homePageProduct ? (
           <section
             id="order-form"
-            className="bg-card text-card-foreground rounded-3xl p-12 md:p-20 shadow-lg mb-4"
+            className="bg-card text-card-foreground rounded-3xl p-12 md:p-10 shadow-lg mb-4"
           >
             <h2 className="text-4xl font-bold mb-6 text-center">অর্ডার ফর্ম</h2>
             <div className="flex flex-col md:flex-row gap-12 mb-5"> {/* Added mb-5 here for 20px bottom margin */}
