@@ -12,7 +12,6 @@ export default function AdminLayout({ children }) {
     const menuItems = [
         { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/admin' },
         { name: 'Products', icon: <Package size={20} />, path: '/admin/products' },
-        { name: 'Featured Products', icon: <Package size={20} />, path: '/admin/featured-products' },
         { name: 'Home Setting', icon: <Package size={20} />, path: '/admin/home-settings' },
         { name: 'Orders', icon: <ShoppingCart size={20} />, path: '/admin/orders' },
         { name: 'Users', icon: <Users size={20} />, path: '/admin/users' },

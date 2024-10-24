@@ -3,6 +3,9 @@ import { getDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { ObjectId } from 'mongodb';
+import { writeFile } from 'fs/promises';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(request, { params }) {
     try {
@@ -27,45 +30,57 @@ export async function PUT(request, { params }) {
             return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
         }
 
+        const { id } = params;
         const db = await getDatabase();
-        const body = await request.json();
+        const collection = db.collection('products');
 
-        // Validate the incoming data
-        if (!body.name || body.price === undefined || !body.description || !body.category || body.stock === undefined) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        const formData = await request.formData();
+        const updatedProduct = Object.fromEntries(formData.entries());
+
+        // Convert price to number
+        if (updatedProduct.price) {
+            updatedProduct.price = parseFloat(updatedProduct.price);
         }
 
-        // Ensure price and stock are numbers
-        const price = parseFloat(body.price);
-        const stock = parseInt(body.stock, 10);
-
-        if (isNaN(price) || isNaN(stock)) {
-            return NextResponse.json({ error: 'Invalid price or stock value' }, { status: 400 });
+        // Convert stock to number
+        if (updatedProduct.stock) {
+            updatedProduct.stock = parseInt(updatedProduct.stock, 10);
         }
 
-        const updatedProduct = {
-            name: body.name,
-            price: price,
-            description: body.description,
-            category: body.category,
-            stock: stock,
-            image: body.image // Assuming image URL is optional
-        };
+        // Handle image upload if a new image is provided
+        if (formData.get('image') && formData.get('image').size > 0) {
+            const file = formData.get('image');
+            const bytes = await file.arrayBuffer();
+            const buffer = Buffer.from(bytes);
 
-        const result = await db.collection('products').findOneAndUpdate(
-            { _id: new ObjectId(params.id) },
-            { $set: updatedProduct },
-            { returnDocument: 'after' }
+            // Generate a unique filename
+            const uniqueFilename = `${uuidv4()}${path.extname(file.name)}`;
+            const imagePath = path.join(process.cwd(), 'public', 'images', uniqueFilename);
+
+            // Save the file
+            await writeFile(imagePath, buffer);
+            updatedProduct.image = `/images/${uniqueFilename}`;
+        } else {
+            // If no new image is provided, remove the image field to keep the existing image
+            delete updatedProduct.image;
+        }
+
+        // Remove the _id field from the update operation
+        delete updatedProduct._id;
+
+        const result = await collection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: updatedProduct }
         );
 
-        if (!result.value) {
+        if (result.matchedCount === 0) {
             return NextResponse.json({ error: 'Product not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ message: 'Product updated successfully', product: result.value });
+        return NextResponse.json({ message: 'Product updated successfully' });
     } catch (error) {
         console.error('Error updating product:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
     }
 }
 

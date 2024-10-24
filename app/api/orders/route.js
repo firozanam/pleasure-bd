@@ -1,40 +1,40 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
-import dbConnect from '@/lib/mongodb';
-import Order from '@/models/Order';
-import Product from '@/models/Product';
+import { getDatabase } from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
 
-export async function POST(req) {
+export async function POST(request) {
     try {
-        await dbConnect();
+        const db = await getDatabase();
         const session = await getServerSession(authOptions);
-        const { name, address, mobile, items, total } = await req.json();
+        const { name, address, mobile, items, total } = await request.json();
 
         // Fetch product details for each item
         const itemsWithDetails = await Promise.all(items.map(async (item) => {
-            const product = await Product.findById(item.id);
+            const product = await db.collection('products').findOne({ _id: new ObjectId(item.id) });
             return {
                 product: item.id,
                 name: product.name,
                 quantity: item.quantity,
                 price: product.price,
-                image: product.image // Include the product image URL
+                image: product.image
             };
         }));
 
-        const order = new Order({
+        const order = {
             user: session?.user?.id,
             name,
             address,
             mobile,
             items: itemsWithDetails,
-            total
-        });
+            total,
+            createdAt: new Date()
+        };
 
-        await order.save();
+        const result = await db.collection('orders').insertOne(order);
 
-        return NextResponse.json({ message: 'Order created successfully', orderId: order._id });
+        return NextResponse.json({ message: 'Order created successfully', orderId: result.insertedId });
     } catch (error) {
         console.error('Error creating order:', error);
         return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });

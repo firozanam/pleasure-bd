@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function AddProductPage() {
     const [name, setName] = useState('')
@@ -22,24 +23,23 @@ export default function AddProductPage() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
-
         const formData = new FormData()
         formData.append('name', name)
-        formData.append('price', price)
+        formData.append('price', parseFloat(price))
         formData.append('description', description)
         formData.append('category', category)
-        formData.append('stock', stock)
+        formData.append('stock', parseInt(stock))
         if (image) {
             formData.append('image', image)
         }
 
         try {
-            const res = await fetch('/api/products', {
+            const response = await fetch('/api/products', {
                 method: 'POST',
                 body: formData,
             })
 
-            if (!res.ok) {
+            if (!response.ok) {
                 throw new Error('Failed to add product')
             }
 
@@ -52,7 +52,7 @@ export default function AddProductPage() {
             console.error('Error adding product:', error)
             toast({
                 title: "Error",
-                description: "Failed to add product",
+                description: error.message,
                 variant: "destructive",
             })
         } finally {
@@ -95,12 +95,17 @@ export default function AddProductPage() {
                 </div>
                 <div>
                     <Label htmlFor="category">Category</Label>
-                    <Input
-                        id="category"
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        required
-                    />
+                    <Select value={category} onValueChange={setCategory}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Magic Condom">Magic Condom</SelectItem>
+                            <SelectItem value="Dradon Condom">Dradon Condom</SelectItem>
+                            <SelectItem value="Lock Love Condom">Lock Love Condom</SelectItem>
+                            <SelectItem value="Love Toy Condom">Love Toy Condom</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div>
                     <Label htmlFor="stock">Stock</Label>

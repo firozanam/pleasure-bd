@@ -5,6 +5,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from 'mongodb';
 
 export async function GET() {
     const db = await getDatabase();
@@ -115,7 +116,7 @@ export async function PUT(request) {
             stock: parseInt(stock, 10)
         };
 
-        if (image) {
+        if (image && image.size > 0) {
             const bytes = await image.arrayBuffer();
             const buffer = Buffer.from(bytes);
 

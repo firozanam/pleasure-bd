@@ -2,71 +2,66 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useToast } from "@/components/ui/toast-context"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/components/ui/toast-context"
 import Image from 'next/image'
 
-export default function EditProductPage({ params }) {
+export default function EditProduct({ params }) {
     const [product, setProduct] = useState(null)
-    const [name, setName] = useState('')
-    const [price, setPrice] = useState('')
-    const [description, setDescription] = useState('')
-    const [category, setCategory] = useState('')
-    const [stock, setStock] = useState('')
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
     const [image, setImage] = useState(null)
-    const [loading, setLoading] = useState(false)
+    const [imagePreview, setImagePreview] = useState(null)
     const router = useRouter()
     const { toast } = useToast()
 
     useEffect(() => {
-        fetchProduct()
-    }, [])
-
-    const fetchProduct = async () => {
-        try {
-            const res = await fetch(`/api/products/${params.id}`)
-            if (!res.ok) throw new Error('Failed to fetch product')
-            const data = await res.json()
-            setProduct(data)
-            setName(data.name)
-            setPrice(data.price)
-            setDescription(data.description)
-            setCategory(data.category)
-            setStock(data.stock)
-        } catch (error) {
-            console.error('Error fetching product:', error)
-            toast({
-                title: "Error",
-                description: "Failed to fetch product",
-                variant: "destructive",
-            })
+        const fetchProduct = async () => {
+            try {
+                const response = await fetch(`/api/products/${params.id}`)
+                if (!response.ok) {
+                    throw new Error('Failed to fetch product')
+                }
+                const data = await response.json()
+                setProduct(data.product)
+                setImagePreview(data.product.image)
+                setLoading(false)
+            } catch (err) {
+                setError(err.message)
+                setLoading(false)
+            }
         }
-    }
+
+        fetchProduct()
+    }, [params.id])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
-
-        const formData = new FormData()
-        formData.append('name', name)
-        formData.append('price', price)
-        formData.append('description', description)
-        formData.append('category', category)
-        formData.append('stock', stock)
-        if (image) {
-            formData.append('image', image)
-        }
-
         try {
-            const res = await fetch(`/api/products/${params.id}`, {
+            const formData = new FormData()
+            for (const key in product) {
+                if (key !== '_id' && key !== 'image') {
+                    if (key === 'price') {
+                        formData.append(key, parseFloat(product[key]))
+                    } else {
+                        formData.append(key, product[key])
+                    }
+                }
+            }
+            if (image) {
+                formData.append('image', image)
+            }
+
+            const response = await fetch(`/api/products/${params.id}`, {
                 method: 'PUT',
                 body: formData,
             })
 
-            if (!res.ok) {
+            if (!response.ok) {
                 throw new Error('Failed to update product')
             }
 
@@ -75,11 +70,11 @@ export default function EditProductPage({ params }) {
                 description: "Product updated successfully",
             })
             router.push('/admin/products')
-        } catch (error) {
-            console.error('Error updating product:', error)
+        } catch (err) {
+            setError(err.message)
             toast({
                 title: "Error",
-                description: "Failed to update product",
+                description: err.message,
                 variant: "destructive",
             })
         } finally {
@@ -87,81 +82,86 @@ export default function EditProductPage({ params }) {
         }
     }
 
-    if (!product) return <div>Loading...</div>
+    const handleChange = (e) => {
+        const { name, value } = e.target
+        setProduct(prev => ({ ...prev, [name]: value }))
+    }
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            setImage(file)
+            setImagePreview(URL.createObjectURL(file))
+        }
+    }
+
+    if (loading) return <div>Loading...</div>
+    if (error) return <div>Error: {error}</div>
+    if (!product) return <div>Product not found</div>
 
     return (
-        <div className="container mx-auto py-10">
-            <h1 className="text-2xl font-bold mb-5">Edit Product</h1>
+        <div className="p-6 bg-white rounded-lg shadow-md">
+            <h1 className="text-2xl font-bold mb-4">Edit Product</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                        id="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+                    <Input type="text" id="name" name="name" value={product.name} onChange={handleChange} required />
+                </div>
+                <div>
+                    <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price</label>
+                    <Input 
+                        type="number" 
+                        id="price" 
+                        name="price" 
+                        value={product.price} 
+                        onChange={handleChange} 
+                        step="0.01" 
+                        min="0" 
+                        required 
                     />
                 </div>
                 <div>
-                    <Label htmlFor="price">Price</Label>
-                    <Input
-                        id="price"
-                        type="number"
-                        step="0.01"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        required
-                    />
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                    <Textarea id="description" name="description" value={product.description} onChange={handleChange} required />
                 </div>
                 <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                        id="description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        required
-                    />
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+                    <Select name="category" value={product.category} onValueChange={(value) => handleChange({ target: { name: 'category', value } })}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Magic Condom">Magic Condom</SelectItem>
+                            <SelectItem value="Dradon Condom">Dradon Condom</SelectItem>
+                            <SelectItem value="Lock Love Condom">Lock Love Condom</SelectItem>
+                            <SelectItem value="Love Toy Condom">Love Toy Condom</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div>
-                    <Label htmlFor="category">Category</Label>
-                    <Input
-                        id="category"
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        required
-                    />
+                    <label htmlFor="stock" className="block text-sm font-medium text-gray-700">Stock</label>
+                    <Input type="number" id="stock" name="stock" value={product.stock} onChange={handleChange} min="0" required />
                 </div>
                 <div>
-                    <Label htmlFor="stock">Stock</Label>
-                    <Input
-                        id="stock"
-                        type="number"
-                        value={stock}
-                        onChange={(e) => setStock(e.target.value)}
-                        required
-                    />
-                </div>
-                <div>
-                    <Label htmlFor="image">Image</Label>
+                    <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image</label>
                     <Input
                         id="image"
                         type="file"
                         accept="image/*"
-                        onChange={(e) => setImage(e.target.files[0])}
+                        onChange={handleImageChange}
                     />
+                    {imagePreview && (
+                        <div className="mt-2">
+                            <Image
+                                src={imagePreview}
+                                alt="Product preview"
+                                width={100}
+                                height={100}
+                                className="object-cover rounded"
+                            />
+                        </div>
+                    )}
                 </div>
-                {product.image && (
-                    <div>
-                        <Label>Current Image</Label>
-                        <Image
-                            src={product.image}
-                            alt={product.name}
-                            width={100}
-                            height={100}
-                            className="mt-2"
-                        />
-                    </div>
-                )}
                 <Button type="submit" disabled={loading}>
                     {loading ? 'Updating...' : 'Update Product'}
                 </Button>

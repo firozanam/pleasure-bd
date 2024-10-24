@@ -17,11 +17,12 @@ export async function GET(request) {
             .sort({ createdAt: -1 })
             .toArray()
 
-        // Ensure all orders have a total field and a shippingAddress
+        // Ensure all orders have a total field, a shippingAddress, and a status
         const ordersWithTotalAndAddress = orders.map(order => ({
             ...order,
             total: order.total || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-            shippingAddress: order.shippingAddress || 'Address not provided'
+            shippingAddress: order.shippingAddress || 'Address not provided',
+            status: order.status || 'Pending' // Provide a default status if it's missing
         }))
 
         return NextResponse.json(ordersWithTotalAndAddress)

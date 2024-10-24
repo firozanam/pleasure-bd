@@ -1,34 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Image from 'next/image'
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from "@/components/ui/toast-context"
+import { StatusBadge } from '@/components/StatusBadge'
+import { ORDER_STATUSES } from '@/lib/constants'
 
-// Add the StatusBadge component here as well
-const StatusBadge = ({ status }) => {
-    const getStatusColor = (status) => {
-        switch (status.toLowerCase()) {
-            case 'pending': return 'bg-yellow-100 text-yellow-800'
-            case 'processing': return 'bg-blue-100 text-blue-800'
-            case 'shipped': return 'bg-purple-100 text-purple-800'
-            case 'delivered': return 'bg-green-100 text-green-800'
-            case 'cancelled': return 'bg-red-100 text-red-800'
-            default: return 'bg-gray-100 text-gray-800'
-        }
-    }
-
-    return (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
-            {status}
-        </span>
-    )
-}
-
-export default function OrderDetailsModal({ order, isOpen, onClose, isAdmin = false, onStatusUpdate }) {
+export default function OrderDetailsModal({ order, isOpen, onClose, isAdmin = false, onStatusUpdate, orderStatuses }) {
     const [status, setStatus] = useState(order?.status || '')
     const { toast } = useToast()
+
+    useEffect(() => {
+        if (order) {
+            setStatus(order.status || '')
+        }
+    }, [order])
 
     if (!order) return null
 
@@ -76,11 +64,11 @@ export default function OrderDetailsModal({ order, isOpen, onClose, isAdmin = fa
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Pending">Pending</SelectItem>
-                                    <SelectItem value="Processing">Processing</SelectItem>
-                                    <SelectItem value="Shipped">Shipped</SelectItem>
-                                    <SelectItem value="Delivered">Delivered</SelectItem>
-                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                    {orderStatuses.map((statusOption) => (
+                                        <SelectItem key={statusOption} value={statusOption}>
+                                            <StatusBadge status={statusOption} />
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                         ) : (
