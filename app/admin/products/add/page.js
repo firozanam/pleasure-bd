@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import Image from 'next/image'
 
 export default function AddProductPage() {
     const [name, setName] = useState('')
@@ -16,9 +17,18 @@ export default function AddProductPage() {
     const [category, setCategory] = useState('')
     const [stock, setStock] = useState('')
     const [image, setImage] = useState(null)
+    const [imagePreview, setImagePreview] = useState(null)
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const { toast } = useToast()
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            setImage(file)
+            setImagePreview(URL.createObjectURL(file))
+        }
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -123,9 +133,20 @@ export default function AddProductPage() {
                         id="image"
                         type="file"
                         accept="image/*"
-                        onChange={(e) => setImage(e.target.files[0])}
+                        onChange={handleImageChange}
                         required
                     />
+                    {imagePreview && (
+                        <div className="mt-2">
+                            <Image
+                                src={imagePreview}
+                                alt="Product preview"
+                                width={100}
+                                height={100}
+                                className="object-cover rounded"
+                            />
+                        </div>
+                    )}
                 </div>
                 <Button type="submit" disabled={loading}>
                     {loading ? 'Adding...' : 'Add Product'}

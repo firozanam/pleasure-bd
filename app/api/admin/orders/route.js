@@ -11,9 +11,17 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
         }
 
+        const { searchParams } = new URL(request.url)
+        const status = searchParams.get('status')
+
         const db = await getDatabase()
+        let query = {}
+        if (status && status !== 'all') {
+            query.status = status
+        }
+
         const orders = await db.collection('orders')
-            .find({})
+            .find(query)
             .sort({ createdAt: -1 })
             .toArray()
 

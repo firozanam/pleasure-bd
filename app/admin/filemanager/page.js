@@ -5,13 +5,20 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2, Trash2, Eye, Copy } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useToast } from "@/components/ui/toast-context"
+import axios from 'axios'
 
 export default function FileManager() {
+    const { toast } = useToast()
     const [files, setFiles] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [uploadingFile, setUploadingFile] = useState(null)
     const [selectedFile, setSelectedFile] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [uploadStatus, setUploadStatus] = useState('')
 
     useEffect(() => {
         fetchFiles()
@@ -24,7 +31,7 @@ export default function FileManager() {
                 const data = await response.json()
                 setFiles(data)
             } else {
-                console.error('Failed to fetch files')
+                console.error('Failed to fetch files:', await response.text())
             }
         } catch (error) {
             console.error('Error fetching files:', error)
@@ -41,20 +48,30 @@ export default function FileManager() {
         formData.append('file', file)
 
         setUploadingFile(file.name)
+        setUploadStatus('Uploading...')
 
         try {
-            const response = await fetch('/api/admin/files/upload', {
-                method: 'POST',
-                body: formData,
+            const response = await axios.post('/api/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             })
 
-            if (response.ok) {
-                await fetchFiles()
+            if (response.data.success) {
+                setUploadStatus('File uploaded successfully')
+                console.log('File uploaded:', response.data.fileUrl)
+                fetchFiles() // Refresh the file list
             } else {
-                console.error('Failed to upload file')
+                throw new Error(response.data.error || 'Upload failed')
             }
         } catch (error) {
             console.error('Error uploading file:', error)
+            setUploadStatus(`Upload failed: ${error.message}`)
+            toast({
+                title: "Error",
+                description: "An error occurred while uploading the file",
+                variant: "destructive",
+            })
         } finally {
             setUploadingFile(null)
         }
@@ -62,17 +79,33 @@ export default function FileManager() {
 
     const handleDeleteFile = async (filename) => {
         try {
-            const response = await fetch(`/api/admin/files/${encodeURIComponent(filename)}`, {
+            const response = await fetch(`/api/delete?filename=${encodeURIComponent(filename)}`, {
                 method: 'DELETE',
-            })
+            });
 
             if (response.ok) {
-                await fetchFiles()
+                const result = await response.json();
+                toast({
+                    title: "Success",
+                    description: result.message,
+                });
+                // Remove the file from the state regardless of whether it existed or not
+                setFiles(prevFiles => prevFiles.filter(file => file !== filename));
             } else {
-                console.error('Failed to delete file')
+                const errorData = await response.json();
+                toast({
+                    title: "Error",
+                    description: errorData.error || "Failed to delete file",
+                    variant: "destructive",
+                });
             }
         } catch (error) {
-            console.error('Error deleting file:', error)
+            console.error('Error deleting file:', error);
+            toast({
+                title: "Error",
+                description: "An error occurred while deleting the file",
+                variant: "destructive",
+            });
         }
     }
 
@@ -83,8 +116,24 @@ export default function FileManager() {
 
     const handleCopyLink = (file) => {
         const url = `${window.location.origin}/images/${file}`
-        navigator.clipboard.writeText(url)
-        alert('Link copied to clipboard!')
+        navigator.clipboard.writeText(url).then(() => {
+            toast({
+                title: "Success",
+                description: "Link copied to clipboard!",
+            });
+        }).catch((err) => {
+            console.error('Failed to copy: ', err);
+            toast({
+                title: "Error",
+                description: "Failed to copy link",
+                variant: "destructive",
+            });
+        });
+    }
+
+    const getImageUrl = (file) => {
+        // Assuming your images are stored in a public 'images' folder
+        return `/images/${encodeURIComponent(file)}`
     }
 
     if (isLoading) {
@@ -100,62 +149,73 @@ export default function FileManager() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {files.map((file) => (
-                    <div key={file} className="relative group">
-                        <Image
-                            src={`/images/${file}`}
-                            alt={file}
-                            width={100}
-                            height={100}
-                            className="object-cover w-full h-48"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewFile(file)}
-                                className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
-                            >
-                                <Eye className="h-4 w-4 mr-1" /> View
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleCopyLink(file)}
-                                className="bg-accent text-accent-foreground hover:bg-accent/90"
-                            >
-                                <Copy className="h-4 w-4 mr-1" /> Copy Link
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDeleteFile(file)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                                <Trash2 className="h-4 w-4 mr-1" /> Delete
-                            </Button>
+                    <div key={file} className="relative group bg-background rounded-lg shadow-md overflow-hidden">
+                        <div className="w-full h-[150px] relative">
+                            <img
+                                src={getImageUrl(file)}
+                                alt={file}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    console.error(`Error loading image: ${file}`)
+                                    e.target.src = '/placeholder-image.jpg' // Replace with an actual placeholder image
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div className="flex flex-col space-y-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleViewFile(file)}
+                                        className="bg-secondary text-secondary-foreground hover:bg-secondary/90 w-full"
+                                    >
+                                        <Eye className="h-4 w-4 mr-2" /> View
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleCopyLink(file)}
+                                        className="bg-accent text-accent-foreground hover:bg-accent/90 w-full"
+                                    >
+                                        <Copy className="h-4 w-4 mr-2" /> Copy Link
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => handleDeleteFile(file)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
-                        <p className="mt-2 text-sm truncate">{file}</p>
+                        <p className="mt-2 text-sm truncate p-2">{file}</p>
                     </div>
                 ))}
             </div>
 
             {isModalOpen && selectedFile && (
-                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-                    <div className="bg-background p-4 rounded shadow-lg">
-                        <Image
-                            src={`/images/${selectedFile}`}
-                            alt={selectedFile}
-                            width={400}
-                            height={400}
-                            className="object-cover"
-                        />
-                        <Button
-                            variant="outline"
-                            className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90"
-                            onClick={() => setIsModalOpen(false)}
-                        >
-                            Close
-                        </Button>
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+                    <div className="bg-background p-6 rounded-lg shadow-lg max-w-3xl w-full">
+                        <div className="w-full h-[500px] relative mb-4">
+                            <Image
+                                src={getImageUrl(selectedFile)}
+                                alt={selectedFile}
+                                layout="fill"
+                                objectFit="contain"
+                                unoptimized
+                            />
+                        </div>
+                        <p className="text-center mb-4 text-sm">{selectedFile}</p>
+                        <div className="flex justify-end">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsModalOpen(false)}
+                                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                            >
+                                Close
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}

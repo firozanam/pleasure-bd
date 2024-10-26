@@ -1,5 +1,13 @@
 import { Schema, model, models } from 'mongoose';
 
+const ReviewSchema = new Schema({
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    name: { type: String, required: true },
+    isAnonymous: { type: Boolean, default: false },
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    comment: { type: String, required: true },
+}, { timestamps: true });
+
 const ProductSchema = new Schema({
     name: { type: String, required: true },
     description: { type: String, required: true },
@@ -12,6 +20,7 @@ const ProductSchema = new Schema({
     category: { type: String, required: true },
     featured: { type: Boolean, default: false },
     stock: { type: Number, required: true, default: 0 },
+    reviews: [ReviewSchema],
 }, { timestamps: true });
 
 const Product = models.Product || model('Product', ProductSchema);
@@ -28,6 +37,7 @@ export function createProductObject(data) {
         category: data.category,
         featured: data.featured === true || data.featured === 'true',
         stock: parseInt(data.stock) || 0,
+        reviews: [],
         createdAt: new Date(),
         updatedAt: new Date(),
     };

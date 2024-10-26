@@ -41,9 +41,11 @@ export const authOptions = {
       return token
     },
     async session({ session, token }) {
-      session.user.id = token.id
-      session.user.isAdmin = token.isAdmin
-      return session
+      if (session?.user) {
+        session.user.id = token.id;
+        session.user.isAdmin = token.isAdmin;
+      }
+      return session;
     }
   },
   pages: {

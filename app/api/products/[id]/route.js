@@ -8,13 +8,21 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(request, { params }) {
+    const db = await getDatabase();
+    const { id } = params;
+
     try {
-        const db = await getDatabase();
-        const product = await db.collection('products').findOne({ _id: new ObjectId(params.id) });
+        const product = await db.collection('products').findOne(
+            { _id: new ObjectId(id) },
+            { projection: { reviews: 1, name: 1, price: 1, description: 1, category: 1, stock: 1, image: 1 } }
+        );
 
         if (!product) {
             return NextResponse.json({ error: 'Product not found' }, { status: 404 });
         }
+
+        // Ensure reviews is always an array
+        product.reviews = Array.isArray(product.reviews) ? product.reviews : [];
 
         return NextResponse.json({ product });
     } catch (error) {

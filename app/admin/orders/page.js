@@ -10,21 +10,26 @@ import OrderDetailsModal from '@/components/OrderDetailsModal'
 import { StatusBadge } from '@/components/StatusBadge'
 import { formatCurrency } from '@/lib/utils'
 import { ORDER_STATUSES } from '@/lib/constants'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function AdminOrdersPage() {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const [selectedOrder, setSelectedOrder] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [statusFilter, setStatusFilter] = useState('all')
     const { toast } = useToast()
 
     useEffect(() => {
         fetchOrders()
-    }, [])
+    }, [statusFilter])
 
     const fetchOrders = async () => {
         try {
-            const res = await fetch('/api/admin/orders')
+            const url = statusFilter === 'all' 
+                ? '/api/admin/orders' 
+                : `/api/admin/orders?status=${statusFilter}`
+            const res = await fetch(url)
             if (!res.ok) throw new Error('Failed to fetch orders')
             const data = await res.json()
             setOrders(data)
@@ -51,6 +56,10 @@ export default function AdminOrdersPage() {
         ))
     }
 
+    const filteredOrders = statusFilter === 'all' 
+        ? orders 
+        : orders.filter(order => order.status === statusFilter)
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -62,6 +71,19 @@ export default function AdminOrdersPage() {
     return (
         <div className="container mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-8">Manage Orders</h1>
+            <div className="mb-4">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {ORDER_STATUSES.map(status => (
+                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -74,7 +96,7 @@ export default function AdminOrdersPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {orders.map((order) => (
+                    {filteredOrders.map((order) => (
                         <TableRow key={order._id}>
                             <TableCell>{order._id}</TableCell>
                             <TableCell>{order.name || 'Guest'}</TableCell>

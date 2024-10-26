@@ -95,6 +95,28 @@ export default function EditProduct({ params }) {
         }
     }
 
+    const handleImageUpload = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            const data = await response.json();
+            return data.url;
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            throw error;
+        }
+    };
+
     if (loading) return <div>Loading...</div>
     if (error) return <div>Error: {error}</div>
     if (!product) return <div>Product not found</div>

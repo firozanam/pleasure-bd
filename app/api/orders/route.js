@@ -73,19 +73,34 @@ export async function POST(request) {
 
 export async function GET(request) {
     try {
-        const db = await getDatabase();
         const session = await getServerSession(authOptions);
-
         if (!session || !session.user) {
             return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
         }
 
+        const db = await getDatabase();
         const orders = await db.collection('orders')
             .find({ userId: session.user.id })
             .sort({ createdAt: -1 })
             .toArray();
 
-        return NextResponse.json({ orders });
+        // Check if each product in the order has been reviewed
+        const productsWithReviews = await db.collection('products')
+            .find({ 'reviews.userId': new ObjectId(session.user.id) })
+            .project({ _id: 1 })
+            .toArray();
+
+        const reviewedProductIds = new Set(productsWithReviews.map(p => p._id.toString()));
+
+        const ordersWithReviewInfo = orders.map(order => ({
+            ...order,
+            items: order.items.map(item => ({
+                ...item,
+                reviewed: reviewedProductIds.has(item.id)
+            }))
+        }));
+
+        return NextResponse.json({ orders: ordersWithReviewInfo });
     } catch (error) {
         console.error('Error fetching orders:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
+import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -16,10 +16,12 @@ export async function POST(request) {
 
     const fileExtension = path.extname(file.name)
     const fileName = `${uuidv4()}${fileExtension}`
-    const filePath = path.join(process.cwd(), 'public', 'images', fileName)
+    const uploadDir = path.join(process.cwd(), 'public', 'images')
+    const filePath = path.join(uploadDir, fileName)
 
     try {
-        fs.writeFileSync(filePath, buffer)
+        await mkdir(uploadDir, { recursive: true })
+        await writeFile(filePath, buffer)
         return NextResponse.json({ message: 'File uploaded successfully', fileName })
     } catch (error) {
         console.error('Error saving file:', error)

@@ -28,7 +28,18 @@ export default function LoginPage() {
         variant: "destructive",
       })
     } else {
-      router.push('/')
+      // Fetch user data to check if the user is an admin
+      const userResponse = await fetch('/api/user')
+      if (userResponse.ok) {
+        const userData = await userResponse.json()
+        if (userData.isAdmin) {
+          router.push('/admin')
+        } else {
+          router.push('/')
+        }
+      } else {
+        router.push('/')
+      }
     }
   }
 

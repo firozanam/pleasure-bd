@@ -242,6 +242,55 @@ export default function AdminHomeSettingsPage() {
                                     })}
                                 </div>
                             </div>
+                            <Button type="submit" className="w-full" disabled={loading}>
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    'Update Settings'
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Current Promoted Product</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {currentProduct ? (
+                            <div className="space-y-4">
+                                <div className="relative w-1/1 aspect-square rounded-lg overflow-hidden">
+                                    <Image
+                                        src={getProxiedImageUrl(currentProduct.image)}
+                                        alt={currentProduct.name}
+                                        objectFit="cover"
+                                        className="rounded-md"
+                                        width={250}
+                                        height={250}
+                                    />
+                                </div>
+                                <h3 className="text-2xl font-bold">{currentProduct.name}</h3>
+                                <p className="text-sm line-clamp-4">{currentProduct.description}</p>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-sm"><span className="font-semibold">Category:</span> {currentProduct.category || 'N/A'}</p>
+                                    <p className="text-2xl font-bold">{formatCurrency(currentProduct.price)}</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-gray-500">No main featured product selected</p>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Hero Section & YouTube Video</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-4 w-full">
                             <div>
                                 <label htmlFor="videoUrl" className="block text-sm font-medium text-gray-700 mb-1">
                                     YouTube Video URL
@@ -307,35 +356,7 @@ export default function AdminHomeSettingsPage() {
                         </form>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Current Promoted Product</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {currentProduct ? (
-                            <div className="space-y-4">
-                                <div className="relative w-1/1 aspect-square rounded-lg overflow-hidden">
-                                    <Image
-                                        src={getProxiedImageUrl(currentProduct.image)}
-                                        alt={currentProduct.name}
-                                        objectFit="cover"
-                                        className="rounded-md"
-                                        width={250}
-                                        height={250}
-                                    />
-                                </div>
-                                <h3 className="text-2xl font-bold">{currentProduct.name}</h3>
-                                <p className="text-sm line-clamp-4">{currentProduct.description}</p>
-                                <div className="flex justify-between items-center">
-                                    <p className="text-sm"><span className="font-semibold">Category:</span> {currentProduct.category || 'N/A'}</p>
-                                    <p className="text-2xl font-bold">{formatCurrency(currentProduct.price)}</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <p className="text-gray-500">No main featured product selected</p>
-                        )}
-                    </CardContent>
-                </Card>
+
             </div>
         </div>
     )

@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import AuthDialog from '@/components/AuthDialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function CheckoutPage() {
     const [name, setName] = useState('')
@@ -21,19 +22,44 @@ export default function CheckoutPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isGuest, setIsGuest] = useState(false)
     const [showAuthDialog, setShowAuthDialog] = useState(false)
+    const [shippingAddresses, setShippingAddresses] = useState([])
+    const [selectedAddressIndex, setSelectedAddressIndex] = useState('')
     const { cart, getCartTotal, clearCart } = useCart()
     const router = useRouter()
     const { toast } = useToast()
     const { data: session, status } = useSession()
 
     useEffect(() => {
-        if (status === 'authenticated' && session?.user) {
-            setName(session.user.name || '')
-            setEmail(session.user.email || '')
-        } else if (status === 'unauthenticated') {
-            setShowAuthDialog(true)
+        const fetchUserData = async () => {
+            if (status === 'authenticated' && session?.user) {
+                try {
+                    const response = await fetch('/api/user')
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user data')
+                    }
+                    const userData = await response.json()
+                    setName(userData.name || '')
+                    setEmail(userData.email || '')
+                    setShippingAddresses(userData.shippingAddresses || [])
+                    if (userData.shippingAddresses && userData.shippingAddresses.length > 0) {
+                        setSelectedAddressIndex('0')
+                        fillShippingInfo(userData.shippingAddresses[0])
+                    }
+                } catch (error) {
+                    console.error('Error fetching user data:', error)
+                    toast({
+                        title: "Error",
+                        description: "Failed to load user data",
+                        variant: "destructive",
+                    })
+                }
+            } else if (status === 'unauthenticated') {
+                setShowAuthDialog(true)
+            }
         }
-    }, [status, session])
+
+        fetchUserData()
+    }, [status, session, toast])
 
     useEffect(() => {
         const handleBeforeUnload = (e) => {
@@ -49,6 +75,18 @@ export default function CheckoutPage() {
             window.removeEventListener('beforeunload', handleBeforeUnload)
         }
     }, [showAuthDialog])
+
+    const fillShippingInfo = (address) => {
+        setName(address.name)
+        setEmail(address.email)
+        setShippingAddress(address.address)
+        setPhone(address.phone)
+    }
+
+    const handleAddressSelect = (index) => {
+        setSelectedAddressIndex(index)
+        fillShippingInfo(shippingAddresses[parseInt(index)])
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -124,6 +162,23 @@ export default function CheckoutPage() {
             <div className="grid md:grid-cols-2 gap-8">
                 <div>
                     <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
+                    {status === 'authenticated' && shippingAddresses.length > 0 && (
+                        <div className="mb-4">
+                            <Label htmlFor="addressSelect">Select Shipping Address</Label>
+                            <Select onValueChange={handleAddressSelect} value={selectedAddressIndex}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select an address" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {shippingAddresses.map((address, index) => (
+                                        <SelectItem key={index} value={index.toString()}>
+                                            {address.name} - {address.address.split('\n')[0]}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <Label htmlFor="name">Name</Label>

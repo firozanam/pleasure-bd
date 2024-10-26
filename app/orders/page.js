@@ -7,51 +7,60 @@ import { useToast } from "@/components/ui/toast-context"
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { StatusBadge } from '@/components/StatusBadge'
+import Link from 'next/link'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function OrdersPage() {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const { data: session, status } = useSession()
-    const router = useRouter()
     const { toast } = useToast()
+    const router = useRouter()
 
     useEffect(() => {
-        if (status === 'unauthenticated') {
-            router.push('/login')
-        } else if (status === 'authenticated') {
-            fetchOrders()
-        }
-    }, [status, router])
-
-    const fetchOrders = async () => {
-        try {
-            const res = await fetch('/api/orders')
-            if (!res.ok) throw new Error('Failed to fetch orders')
-            const data = await res.json()
-            if (Array.isArray(data.orders)) {
-                setOrders(data.orders)
-            } else {
-                throw new Error('Invalid data format: expected an array')
+        const fetchOrders = async () => {
+            if (status !== 'authenticated') {
+                setLoading(false)
+                return
             }
-        } catch (error) {
-            console.error('Error fetching orders:', error)
-            toast({
-                title: "Error",
-                description: "Failed to load orders. Please try again later.",
-                variant: "destructive",
-            })
-            setOrders([])
-        } finally {
-            setLoading(false)
+
+            try {
+                const response = await fetch('/api/orders')
+                if (!response.ok) {
+                    throw new Error('Failed to fetch orders')
+                }
+                const data = await response.json()
+                setOrders(data.orders)
+            } catch (error) {
+                console.error('Error fetching orders:', error)
+                toast({
+                    title: "Error",
+                    description: "Failed to load orders",
+                    variant: "destructive",
+                })
+            } finally {
+                setLoading(false)
+            }
         }
+
+        fetchOrders()
+    }, [status, toast])
+
+    const handleReviewClick = (productId) => {
+        router.push(`/products/${productId}/review`)
     }
 
-    if (status === 'loading' || loading) {
+    if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
                 <Loader2 className="h-8 w-8 animate-spin" />
             </div>
         )
+    }
+
+    if (!session) {
+        return <div>Please log in to view your orders.</div>
     }
 
     if (orders.length === 0) {
@@ -70,32 +79,41 @@ export default function OrdersPage() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">My Orders</h1>
+            <h1 className="text-3xl font-bold mb-8">Your Orders</h1>
             <div className="space-y-8">
                 {orders.map((order) => (
-                    <div key={order._id} className="bg-white shadow-md rounded-lg p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold">Order #{order._id.substring(0, 8)}</h2>
-                            <span className="text-sm text-gray-500">
+                    <Card key={order._id}>
+                        <CardHeader>
+                            <CardTitle className="text-xl">Order #{order._id.substring(0, 8)}</CardTitle>
+                            <p className="text-sm text-gray-500">
                                 {new Date(order.createdAt).toLocaleDateString()}
-                            </span>
-                        </div>
-                        <div className="mb-4">
-                            <p className="font-semibold">Status: <span className="capitalize">{order.status}</span></p>
-                            <p>Total: {formatCurrency(order.total)}</p>
-                        </div>
-                        <div className="border-t pt-4">
-                            <h3 className="font-semibold mb-2">Items:</h3>
-                            <ul className="space-y-2">
-                                {order.items.map((item, index) => (
-                                    <li key={index} className="flex justify-between">
-                                        <span>{item.name} x {item.quantity}</span>
-                                        <span>{formatCurrency(item.price * item.quantity)}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
+                            </p>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="mb-4">
+                                <p className="font-semibold">Status: <StatusBadge status={order.status} /></p>
+                                <p>Total: {formatCurrency(order.total)}</p>
+                            </div>
+                            <div className="border-t pt-4">
+                                <h3 className="font-semibold mb-2">Items:</h3>
+                                <ul className="space-y-2">
+                                    {order.items.map((item, index) => (
+                                        <li key={index} className="flex justify-between items-center">
+                                            <span>{item.name} x {item.quantity}</span>
+                                            <span>{formatCurrency(item.price * item.quantity)}</span>
+                                            {order.status === 'Delivered' && (
+                                                <Link href={`/products/${item.id}/review`} passHref>
+                                                    <Button variant="outline" size="sm">
+                                                        Submit Review
+                                                    </Button>
+                                                </Link>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </CardContent>
+                    </Card>
                 ))}
             </div>
         </div>

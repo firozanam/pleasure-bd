@@ -49,24 +49,15 @@ export async function POST(request) {
         }
 
         let imagePath = '';
-
-        if (image instanceof Blob) {
-            // Handle file upload
+        if (image && image.size > 0) {
             const bytes = await image.arrayBuffer();
             const buffer = Buffer.from(bytes);
 
-            // Generate a unique filename
             const uniqueFilename = `${uuidv4()}${path.extname(image.name)}`;
             imagePath = path.join(process.cwd(), 'public', 'images', uniqueFilename);
 
-            // Save the file
             await writeFile(imagePath, buffer);
             imagePath = `/images/${uniqueFilename}`;
-        } else if (typeof image === 'string' && image.startsWith('http')) {
-            // Handle external image URL
-            imagePath = image;
-        } else {
-            return NextResponse.json({ error: 'Invalid image' }, { status: 400 });
         }
 
         const newProduct = {
@@ -75,19 +66,17 @@ export async function POST(request) {
             description,
             category,
             stock: parsedStock,
-            image: imagePath
+            image: imagePath,
+            reviews: [], // Initialize reviews as an empty array
+            avgRating: 0
         };
 
         const result = await db.collection('products').insertOne(newProduct);
 
-        if (!result.insertedId) {
-            throw new Error('Failed to create product');
-        }
-
-        return NextResponse.json({ message: 'Product created successfully', productId: result.insertedId }, { status: 201 });
+        return NextResponse.json({ message: 'Product created successfully', productId: result.insertedId });
     } catch (error) {
-        console.error('Error creating product:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        console.error('Failed to create product:', error);
+        return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
     }
 }
 

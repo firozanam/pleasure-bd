@@ -51,6 +51,8 @@ Develop a basic e-commerce website for Pleasure BD using Next.js with App Router
 pleasure-bd/
 ├── README.md
 ├── app
+│   ├── about
+│   │   └── page.js
 │   ├── account
 │   │   └── page.js
 │   ├── admin
@@ -97,9 +99,13 @@ pleasure-bd/
 │   │   │       └── route.js
 │   │   ├── categories
 │   │   │   └── route.js
+│   │   ├── contact
+│   │   │   └── route.js
 │   │   ├── debug
 │   │   │   └── orders
 │   │   │       └── route.js
+│   │   ├── delete
+│   │   │   └── route.js
 │   │   ├── image-proxy
 │   │   │   └── route.js
 │   │   ├── orders
@@ -113,6 +119,8 @@ pleasure-bd/
 │   │   │   ├── route.js
 │   │   │   └── search
 │   │   │       └── route.js
+│   │   ├── reviews
+│   │   │   └── route.js
 │   │   ├── settings
 │   │   │   └── home
 │   │   │       └── route.js
@@ -120,11 +128,15 @@ pleasure-bd/
 │   │   │   └── route.js
 │   │   ├── update-legacy-images
 │   │   │   └── route.js
+│   │   ├── upload
+│   │   │   └── route.js
 │   │   └── user
 │   │       └── route.js
 │   ├── cart
 │   │   └── page.js
 │   ├── checkout
+│   │   └── page.js
+│   ├── contact
 │   │   └── page.js
 │   ├── error.js
 │   ├── favicon.ico
@@ -142,12 +154,19 @@ pleasure-bd/
 │   ├── orders
 │   │   └── page.js
 │   ├── page.js
+│   ├── privacy
+│   │   └── page.js
 │   ├── products
 │   │   ├── [id]
-│   │   │   └── page.js
+│   │   │   ├── page.js
+│   │   │   └── review
+│   │   │       └── page.js
 │   │   └── page.js
-│   └── register
+│   ├── register
+│   │   └── page.js
+│   └── terms
 │       └── page.js
+├── codebase.md
 ├── components
 │   ├── AddToCartButton.js
 │   ├── AdminLayout.js
@@ -168,12 +187,14 @@ pleasure-bd/
 │   ├── ProductList.js
 │   ├── Providers.js
 │   ├── ReviewForm.js
+│   ├── ReviewItem.js
 │   ├── Reviews.js
 │   ├── SafeImage.js
 │   ├── SearchFilter.js
 │   ├── StatusBadge.js
 │   └── ui
 │       ├── Toaster.js
+│       ├── badge.jsx
 │       ├── button.js
 │       ├── card.js
 │       ├── card.jsx
@@ -184,6 +205,7 @@ pleasure-bd/
 │       ├── select.js
 │       ├── select.jsx
 │       ├── table.jsx
+│       ├── tabs.jsx
 │       ├── textarea.jsx
 │       ├── toast-context.js
 │       └── toast.js
@@ -198,6 +220,7 @@ pleasure-bd/
 ├── jsconfig.json
 ├── lib
 │   ├── constants.js
+│   ├── data.js
 │   ├── mailer.js
 │   ├── mongodb.js
 │   └── utils.js
@@ -217,6 +240,8 @@ pleasure-bd/
 ├── postcss.config.mjs
 ├── public
 │   └── images
+│       ├── 08fec875-9aff-4558-880d-01688cf943df.webp
+│       ├── 0d2bb184-71ac-4e5b-8be7-76a004f38b65.webp
 │       ├── 10c89f1d-eb3a-4482-8340-40dab6bc2c0c.webp
 │       ├── 1729499819702-shoes.webp
 │       ├── 1729500183944-ring light.webp
@@ -224,15 +249,17 @@ pleasure-bd/
 │       ├── 1729516350561-Sd1d5dbec057a444b8ae6467cd743dcfey.jpg_720x720q80.jpg_.webp
 │       ├── 1729630027851-9fa427c9a9fbf9af41377f0895ff02cf.jpg_720x720q80.jpg_.webp
 │       ├── 1729636600720-1f551943e2ee4eabd92986569c14f577.jpg_720x720q80.jpg_.webp
+│       ├── 1af0271b-8a3a-4ed1-a4d5-d5813336cb9d.webp
 │       ├── 1ce4eb22-de12-47c1-a816-43eab0a06ba1.webp
 │       ├── 7f4739ef-d3f5-4d37-9698-cb738d5be790.webp
-│       ├── cd5e5bcd-4a7f-4375-bc2a-846a962b05bb.webp
-│       ├── hero-bg.jpg
+│       ├── 80596bb2-d853-41eb-94e5-c3a967ab7854.jpg
+│       ├── hero-bg.png
 │       ├── placeholder.jpg
 │       └── placeholder.png
 ├── routes
 │   └── auth.js
-└── tailwind.config.js
+├── tailwind.config.js
+└── test-db-connection.js
 ```
 
 ## 5. Implementation Details
