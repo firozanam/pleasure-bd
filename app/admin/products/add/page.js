@@ -33,17 +33,17 @@ export default function AddProductPage() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
-        const formData = new FormData()
-        formData.append('name', name)
-        formData.append('price', parseFloat(price))
-        formData.append('description', description)
-        formData.append('category', category)
-        formData.append('stock', parseInt(stock))
-        if (image) {
-            formData.append('image', image)
-        }
-
         try {
+            const formData = new FormData()
+            formData.append('name', name)
+            formData.append('price', price)
+            formData.append('description', description)
+            formData.append('category', category)
+            formData.append('stock', stock)
+            if (image) {
+                formData.append('image', image)
+            }
+
             const response = await fetch('/api/products', {
                 method: 'POST',
                 body: formData,

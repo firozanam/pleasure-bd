@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Loader2, StarIcon } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { getBlobImageUrl } from '@/lib/blobStorage'
 
 export default function SubmitReviewPage({ params }) {
     const [product, setProduct] = useState(null)
@@ -32,6 +33,7 @@ export default function SubmitReviewPage({ params }) {
                     throw new Error('Failed to fetch product')
                 }
                 const data = await response.json()
+                data.product.image = getBlobImageUrl(data.product.image)
                 setProduct(data.product)
                 setName(session?.user?.name || '')
             } catch (error) {

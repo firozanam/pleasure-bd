@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/utils'
+import { getBlobImageUrl } from '@/lib/blobStorage'
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState([])
@@ -90,7 +91,7 @@ export default function AdminProductsPage() {
                             <TableRow key={product._id}>
                                 <TableCell>
                                     <Image 
-                                        src={product.image || '/images/placeholder.png'} 
+                                        src={getBlobImageUrl(product.image) || '/images/placeholder.png'} 
                                         alt={product.name} 
                                         width={50} 
                                         height={50}

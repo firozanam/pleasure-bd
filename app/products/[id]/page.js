@@ -12,6 +12,7 @@ import { useSession } from 'next-auth/react'
 import { Loader2 } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import { Input } from '@/components/ui/input'
+import { getBlobImageUrl } from '@/lib/blobStorage'
 
 export default function ProductPage({ params }) {
   const [product, setProduct] = useState(null)
@@ -33,6 +34,7 @@ export default function ProductPage({ params }) {
         const data = await response.json()
         // Ensure reviews is always an array
         data.product.reviews = Array.isArray(data.product.reviews) ? data.product.reviews : [];
+        data.product.image = getBlobImageUrl(data.product.image)
         setProduct(data.product)
 
         // Check if the user can review

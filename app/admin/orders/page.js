@@ -11,6 +11,7 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { formatCurrency } from '@/lib/utils'
 import { ORDER_STATUSES } from '@/lib/constants'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { getBlobImageUrl } from '@/lib/blobStorage'
 
 export default function AdminOrdersPage() {
     const [orders, setOrders] = useState([])
@@ -105,7 +106,7 @@ export default function AdminOrdersPage() {
                                     {order.items.map((item, index) => (
                                         <div key={index} className="relative w-12 h-12">
                                             <Image
-                                                src={item.image || '/images/placeholder.png'}
+                                                src={getBlobImageUrl(item.image) || '/images/placeholder.png'}
                                                 alt={item.name || 'Product'}
                                                 width={48}
                                                 height={48}

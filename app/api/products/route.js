@@ -2,10 +2,7 @@ import { NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { writeFile } from 'fs/promises';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { ObjectId } from 'mongodb';
+import { uploadToBlob } from '@/lib/blobStorage';
 
 export async function GET() {
     const db = await getDatabase();
@@ -48,16 +45,9 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Invalid price or stock value' }, { status: 400 });
         }
 
-        let imagePath = '';
-        if (image && image.size > 0) {
-            const bytes = await image.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-
-            const uniqueFilename = `${uuidv4()}${path.extname(image.name)}`;
-            imagePath = path.join(process.cwd(), 'public', 'images', uniqueFilename);
-
-            await writeFile(imagePath, buffer);
-            imagePath = `/images/${uniqueFilename}`;
+        let imageUrl = '';
+        if (image) {
+            imageUrl = await uploadToBlob(image);
         }
 
         const newProduct = {
@@ -66,8 +56,8 @@ export async function POST(request) {
             description,
             category,
             stock: parsedStock,
-            image: imagePath,
-            reviews: [], // Initialize reviews as an empty array
+            image: imageUrl,
+            reviews: [],
             avgRating: 0
         };
 
@@ -76,7 +66,7 @@ export async function POST(request) {
         return NextResponse.json({ message: 'Product created successfully', productId: result.insertedId });
     } catch (error) {
         console.error('Failed to create product:', error);
-        return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to create product', details: error.message }, { status: 500 });
     }
 }
 

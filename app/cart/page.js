@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Loader2 } from 'lucide-react'
 import CartSummary from '@/components/CartSummary'
 import { formatCurrency } from '@/lib/utils'
+import { getBlobImageUrl } from '@/lib/blobStorage'
 
 export default function CartPage() {
     const { cart, updateQuantity, removeFromCart, getCartItemCount, getCartTotal, isLoading } = useCart()
@@ -47,7 +48,7 @@ export default function CartPage() {
                                         <TableCell>
                                             <div className="flex items-center">
                                                 <Image 
-                                                    src={item.image || imgSrc}
+                                                    src={getBlobImageUrl(item.image) || '/images/placeholder.png'}
                                                     alt={item.name || 'Product'} 
                                                     width={50} 
                                                     height={50}

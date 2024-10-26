@@ -57,6 +57,7 @@ pleasure-bd/
 │   │   └── page.js
 │   ├── admin
 │   │   ├── filemanager
+│   │   │   ├── FileManagerClient.js
 │   │   │   └── page.js
 │   │   ├── home-settings
 │   │   │   └── page.js
@@ -105,6 +106,10 @@ pleasure-bd/
 │   │   │   └── orders
 │   │   │       └── route.js
 │   │   ├── delete
+│   │   │   └── route.js
+│   │   ├── filemanager-data
+│   │   │   └── route.js
+│   │   ├── files
 │   │   │   └── route.js
 │   │   ├── image-proxy
 │   │   │   └── route.js
@@ -166,7 +171,6 @@ pleasure-bd/
 │   │   └── page.js
 │   └── terms
 │       └── page.js
-├── codebase.md
 ├── components
 │   ├── AddToCartButton.js
 │   ├── AdminLayout.js
@@ -215,10 +219,12 @@ pleasure-bd/
 ├── create-admin.js
 ├── docs
 │   └── instructions.md
+├── file upload fix v7.6.zip
 ├── hooks
 │   └── useForceUpdate.js
 ├── jsconfig.json
 ├── lib
+│   ├── blobStorage.js
 │   ├── constants.js
 │   ├── data.js
 │   ├── mailer.js
@@ -240,19 +246,6 @@ pleasure-bd/
 ├── postcss.config.mjs
 ├── public
 │   └── images
-│       ├── 08fec875-9aff-4558-880d-01688cf943df.webp
-│       ├── 0d2bb184-71ac-4e5b-8be7-76a004f38b65.webp
-│       ├── 10c89f1d-eb3a-4482-8340-40dab6bc2c0c.webp
-│       ├── 1729499819702-shoes.webp
-│       ├── 1729500183944-ring light.webp
-│       ├── 1729505903263-2bc2c4028c185f71e8c0b4e520187b29.jpg_720x720q80.jpg_.webp
-│       ├── 1729516350561-Sd1d5dbec057a444b8ae6467cd743dcfey.jpg_720x720q80.jpg_.webp
-│       ├── 1729630027851-9fa427c9a9fbf9af41377f0895ff02cf.jpg_720x720q80.jpg_.webp
-│       ├── 1729636600720-1f551943e2ee4eabd92986569c14f577.jpg_720x720q80.jpg_.webp
-│       ├── 1af0271b-8a3a-4ed1-a4d5-d5813336cb9d.webp
-│       ├── 1ce4eb22-de12-47c1-a816-43eab0a06ba1.webp
-│       ├── 7f4739ef-d3f5-4d37-9698-cb738d5be790.webp
-│       ├── 80596bb2-d853-41eb-94e5-c3a967ab7854.jpg
 │       ├── hero-bg.png
 │       ├── placeholder.jpg
 │       └── placeholder.png

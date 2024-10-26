@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { formatCurrency } from '@/lib/utils'
+import { getBlobImageUrl } from '@/lib/blobStorage'
 
 export default function OrderConfirmationPage({ params }) {
     const [order, setOrder] = useState(null)
@@ -85,7 +86,13 @@ export default function OrderConfirmationPage({ params }) {
                 <ul className="space-y-2">
                     {order.items.map((item, index) => (
                         <li key={index} className="flex items-center space-x-4">
-                            <Image src={item.image} alt={item.name} width={50} height={50} className="rounded-md" />
+                            <Image
+                                src={getBlobImageUrl(item.image) || '/images/placeholder.png'}
+                                alt={item.name}
+                                width={50}
+                                height={50}
+                                className="rounded-md"
+                            />
                             <div>
                                 <p className="font-medium">{item.name}</p>
                                 <p>Quantity: {item.quantity}</p>

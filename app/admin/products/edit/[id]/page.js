@@ -8,9 +8,17 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/toast-context"
 import Image from 'next/image'
+import { uploadToBlob, getBlobImageUrl } from '@/lib/blobStorage'
 
 export default function EditProduct({ params }) {
-    const [product, setProduct] = useState(null)
+    const [product, setProduct] = useState({
+        name: '',
+        price: '',
+        description: '',
+        category: '',
+        stock: '',
+        image: ''
+    })
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [image, setImage] = useState(null)
@@ -27,7 +35,7 @@ export default function EditProduct({ params }) {
                 }
                 const data = await response.json()
                 setProduct(data.product)
-                setImagePreview(data.product.image)
+                setImagePreview(getBlobImageUrl(data.product.image))
                 setLoading(false)
             } catch (err) {
                 setError(err.message)
@@ -42,23 +50,26 @@ export default function EditProduct({ params }) {
         e.preventDefault()
         setLoading(true)
         try {
-            const formData = new FormData()
-            for (const key in product) {
-                if (key !== '_id' && key !== 'image') {
-                    if (key === 'price') {
-                        formData.append(key, parseFloat(product[key]))
-                    } else {
-                        formData.append(key, product[key])
-                    }
-                }
-            }
+            let imageUrl = product.image
             if (image) {
-                formData.append('image', image)
+                imageUrl = await uploadToBlob(image);
+            }
+
+            const { name, price, description, category, stock } = product
+
+            const updatedProduct = {
+                name,
+                price: parseFloat(price),
+                description,
+                category,
+                stock: parseInt(stock),
+                image: imageUrl
             }
 
             const response = await fetch(`/api/products/${params.id}`, {
                 method: 'PUT',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedProduct),
             })
 
             if (!response.ok) {
@@ -70,11 +81,11 @@ export default function EditProduct({ params }) {
                 description: "Product updated successfully",
             })
             router.push('/admin/products')
-        } catch (err) {
-            setError(err.message)
+        } catch (error) {
+            console.error('Error updating product:', error)
             toast({
                 title: "Error",
-                description: err.message,
+                description: error.message,
                 variant: "destructive",
             })
         } finally {
@@ -94,28 +105,6 @@ export default function EditProduct({ params }) {
             setImagePreview(URL.createObjectURL(file))
         }
     }
-
-    const handleImageUpload = async (file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                throw new Error('Upload failed');
-            }
-
-            const data = await response.json();
-            return data.url;
-        } catch (error) {
-            console.error('Error uploading image:', error);
-            throw error;
-        }
-    };
 
     if (loading) return <div>Loading...</div>
     if (error) return <div>Error: {error}</div>

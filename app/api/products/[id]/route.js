@@ -42,8 +42,30 @@ export async function PUT(request, { params }) {
         const db = await getDatabase();
         const collection = db.collection('products');
 
-        const formData = await request.formData();
-        const updatedProduct = Object.fromEntries(formData.entries());
+        let updatedProduct;
+
+        const contentType = request.headers.get("content-type");
+        if (contentType && contentType.includes("multipart/form-data")) {
+            const formData = await request.formData();
+            updatedProduct = Object.fromEntries(formData.entries());
+
+            // Handle file upload if a new image is provided
+            const imageFile = formData.get('image');
+            if (imageFile && imageFile.size > 0) {
+                const bytes = await imageFile.arrayBuffer();
+                const buffer = Buffer.from(bytes);
+
+                const uniqueFilename = `${uuidv4()}${path.extname(imageFile.name)}`;
+                const imagePath = path.join(process.cwd(), 'public', 'images', uniqueFilename);
+
+                await writeFile(imagePath, buffer);
+                updatedProduct.image = `/images/${uniqueFilename}`;
+            } else {
+                delete updatedProduct.image;
+            }
+        } else {
+            updatedProduct = await request.json();
+        }
 
         // Convert price to number
         if (updatedProduct.price) {
@@ -53,24 +75,6 @@ export async function PUT(request, { params }) {
         // Convert stock to number
         if (updatedProduct.stock) {
             updatedProduct.stock = parseInt(updatedProduct.stock, 10);
-        }
-
-        // Handle image upload if a new image is provided
-        if (formData.get('image') && formData.get('image').size > 0) {
-            const file = formData.get('image');
-            const bytes = await file.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-
-            // Generate a unique filename
-            const uniqueFilename = `${uuidv4()}${path.extname(file.name)}`;
-            const imagePath = path.join(process.cwd(), 'public', 'images', uniqueFilename);
-
-            // Save the file
-            await writeFile(imagePath, buffer);
-            updatedProduct.image = `/images/${uniqueFilename}`;
-        } else {
-            // If no new image is provided, remove the image field to keep the existing image
-            delete updatedProduct.image;
         }
 
         // Remove the _id field from the update operation
@@ -88,7 +92,7 @@ export async function PUT(request, { params }) {
         return NextResponse.json({ message: 'Product updated successfully' });
     } catch (error) {
         console.error('Error updating product:', error);
-        return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update product', details: error.message }, { status: 500 });
     }
 }
 

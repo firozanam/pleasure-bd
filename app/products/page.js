@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import ProductCard from '@/components/ProductCard'
 import { Loader2 } from 'lucide-react'
 import { useToast } from "@/components/ui/toast-context"
+import { getBlobImageUrl } from '@/lib/blobStorage'
 
 export default function ProductsPage() {
     const [products, setProducts] = useState([])
@@ -16,7 +17,11 @@ export default function ProductsPage() {
                 const res = await fetch('/api/products')
                 if (!res.ok) throw new Error('Failed to fetch products')
                 const data = await res.json()
-                setProducts(data.products)
+                const productsWithBlobImages = data.products.map(product => ({
+                    ...product,
+                    image: getBlobImageUrl(product.image)
+                }))
+                setProducts(productsWithBlobImages)
             } catch (error) {
                 console.error('Error fetching products:', error)
                 toast({

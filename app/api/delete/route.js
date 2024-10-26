@@ -1,26 +1,21 @@
-import fs from 'fs';
-import path from 'path';
 import { NextResponse } from 'next/server';
+import { deleteFromBlob } from '@/lib/blobStorage';
 
-export async function DELETE(req) {
-  const { searchParams } = new URL(req.url);
-  const filename = searchParams.get('filename');
+export async function DELETE(request) {
+  const { searchParams } = new URL(request.url);
+  const url = searchParams.get('url');
 
-  if (!filename) {
-    return NextResponse.json({ error: 'Filename is required' }, { status: 400 });
+  if (!url) {
+    return NextResponse.json({ error: 'No URL provided' }, { status: 400 });
   }
-
-  const filePath = path.join(process.cwd(), 'public', 'images', filename);
 
   try {
-    await fs.promises.unlink(filePath);
+    await deleteFromBlob(url);
     return NextResponse.json({ message: 'File deleted successfully' });
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      console.warn(`File not found, but continuing: ${filename}`);
-      return NextResponse.json({ message: 'File does not exist or was already deleted' });
-    }
-    console.error('Error deleting file:', err);
-    return NextResponse.json({ error: 'Error deleting file' }, { status: 500 });
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    return NextResponse.json({ error: 'Failed to delete file' }, { status: 500 });
   }
 }
+
+export const dynamic = 'force-dynamic';

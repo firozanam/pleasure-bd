@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { useToast } from "@/components/ui/toast-context"
 import SafeImage from './SafeImage'
+import { getBlobImageUrl } from '@/lib/blobStorage'
 
 export default function ProductCard({ product }) {
-    const [imgSrc, setImgSrc] = useState(product.image || '/images/placeholder.png')
+    const [imgSrc, setImgSrc] = useState(getBlobImageUrl(product.image))
     const [addingToCart, setAddingToCart] = useState(false)
     const { addToCart } = useCart()
     const { toast } = useToast()
 
     useEffect(() => {
         if (product.image) {
-            setImgSrc(product.image)
+            setImgSrc(getBlobImageUrl(product.image))
         }
     }, [product.image])
 

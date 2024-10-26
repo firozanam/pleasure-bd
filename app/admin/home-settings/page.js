@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useToast } from "@/components/ui/toast-context"
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
@@ -10,12 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { getBlobImageUrl } from '@/lib/blobStorage'
 
 const getProxiedImageUrl = (url) => {
   if (url.startsWith('/')) {
     return url;
   }
-  return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+  return getBlobImageUrl(url);
 };
 
 export default function AdminHomeSettingsPage() {
@@ -30,12 +31,23 @@ export default function AdminHomeSettingsPage() {
     const [heroImage, setHeroImage] = useState('')
     const { toast } = useToast()
 
-    useEffect(() => {
-        fetchSettings()
-        fetchProducts()
-    }, [])
+    const fetchSettings = useCallback(async () => {
+        const fetchFeaturedProduct = async (id) => {
+            try {
+                const res = await fetch(`/api/products/${id}`)
+                if (!res.ok) throw new Error('Failed to fetch featured product')
+                const data = await res.json()
+                setCurrentProduct(data.product)
+            } catch (error) {
+                console.error('Error fetching featured product:', error)
+                toast({
+                    title: "Error",
+                    description: "Failed to fetch featured product",
+                    variant: "destructive",
+                })
+            }
+        }
 
-    const fetchSettings = async () => {
         try {
             const res = await fetch('/api/settings/home')
             if (!res.ok) throw new Error('Failed to fetch settings')
@@ -47,7 +59,7 @@ export default function AdminHomeSettingsPage() {
             setHeroParagraph(data.heroParagraph || '')
             setHeroImage(data.heroImage || '')
             if (data.featuredProductId) {
-                fetchFeaturedProduct(data.featuredProductId)
+                await fetchFeaturedProduct(data.featuredProductId)
             }
         } catch (error) {
             console.error('Error fetching settings:', error)
@@ -59,9 +71,9 @@ export default function AdminHomeSettingsPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [toast, setCurrentProduct, setFeaturedProductId, setFeaturedProductIds, setVideoUrl, setHeroHeading, setHeroParagraph, setHeroImage, setLoading])
 
-    const fetchProducts = async () => {
+    const fetchProducts = useCallback(async () => {
         try {
             const res = await fetch('/api/products')
             if (!res.ok) throw new Error('Failed to fetch products')
@@ -75,23 +87,12 @@ export default function AdminHomeSettingsPage() {
                 variant: "destructive",
             })
         }
-    }
+    }, [toast])
 
-    const fetchFeaturedProduct = async (id) => {
-        try {
-            const res = await fetch(`/api/products/${id}`)
-            if (!res.ok) throw new Error('Failed to fetch featured product')
-            const data = await res.json()
-            setCurrentProduct(data.product)
-        } catch (error) {
-            console.error('Error fetching featured product:', error)
-            toast({
-                title: "Error",
-                description: "Failed to fetch featured product",
-                variant: "destructive",
-            })
-        }
-    }
+    useEffect(() => {
+        fetchSettings()
+        fetchProducts()
+    }, [fetchSettings, fetchProducts])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
