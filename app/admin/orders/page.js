@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { useToast } from "@/components/ui/toast-context"
@@ -13,7 +13,7 @@ import { ORDER_STATUSES } from '@/lib/constants'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getBlobImageUrl } from '@/lib/blobStorage'
 
-export default function AdminOrdersPage() {
+const OrdersPage = () => {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const [selectedOrder, setSelectedOrder] = useState(null)
@@ -21,11 +21,7 @@ export default function AdminOrdersPage() {
     const [statusFilter, setStatusFilter] = useState('all')
     const { toast } = useToast()
 
-    useEffect(() => {
-        fetchOrders()
-    }, [statusFilter])
-
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         try {
             const url = statusFilter === 'all' 
                 ? '/api/admin/orders' 
@@ -44,7 +40,11 @@ export default function AdminOrdersPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [statusFilter, toast])
+
+    useEffect(() => {
+        fetchOrders()
+    }, [fetchOrders])
 
     const openOrderDetails = (order) => {
         setSelectedOrder(order)
@@ -148,3 +148,5 @@ export default function AdminOrdersPage() {
         </div>
     )
 }
+
+export default OrdersPage

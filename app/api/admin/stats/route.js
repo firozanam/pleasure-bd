@@ -4,7 +4,7 @@ import User from '@/models/User'
 import Product from '@/models/Product'
 import Order from '@/models/Order'
 
-export async function GET(request) {
+export async function GET() {
     try {
         await dbConnect()
 

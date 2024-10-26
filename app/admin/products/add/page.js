@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Image from 'next/image'
+import { uploadToBlob } from '@/lib/blobStorage'
 
 export default function AddProductPage() {
     const [name, setName] = useState('')
@@ -34,19 +35,35 @@ export default function AddProductPage() {
         e.preventDefault()
         setLoading(true)
         try {
-            const formData = new FormData()
-            formData.append('name', name)
-            formData.append('price', price)
-            formData.append('description', description)
-            formData.append('category', category)
-            formData.append('stock', stock)
+            let imageUrl = ''
             if (image) {
-                formData.append('image', image)
+                try {
+                    imageUrl = await uploadToBlob(image)
+                } catch (uploadError) {
+                    console.error('Error uploading image:', uploadError)
+                    toast({
+                        title: "Error",
+                        description: "Failed to upload image. Please try again.",
+                        variant: "destructive",
+                    })
+                    setLoading(false)
+                    return
+                }
+            }
+
+            const productData = {
+                name,
+                price: parseFloat(price),
+                description,
+                category,
+                stock: parseInt(stock),
+                image: imageUrl
             }
 
             const response = await fetch('/api/products', {
                 method: 'POST',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(productData),
             })
 
             if (!response.ok) {

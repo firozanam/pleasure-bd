@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { uploadToBlob } from '@/lib/blobStorage';
 
 export async function GET() {
     const db = await getDatabase();
@@ -24,39 +23,20 @@ export async function POST(request) {
         }
 
         const db = await getDatabase();
-        const formData = await request.formData();
-        const name = formData.get('name');
-        const price = formData.get('price');
-        const description = formData.get('description');
-        const category = formData.get('category');
-        const stock = formData.get('stock');
-        const image = formData.get('image');
+        const { name, price, description, category, stock, image } = await request.json();
 
         // Validate the incoming data
         if (!name || !price || !description || !category || !stock) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Ensure price and stock are numbers
-        const parsedPrice = parseFloat(price);
-        const parsedStock = parseInt(stock, 10);
-
-        if (isNaN(parsedPrice) || isNaN(parsedStock)) {
-            return NextResponse.json({ error: 'Invalid price or stock value' }, { status: 400 });
-        }
-
-        let imageUrl = '';
-        if (image) {
-            imageUrl = await uploadToBlob(image);
-        }
-
         const newProduct = {
             name,
-            price: parsedPrice,
+            price: parseFloat(price),
             description,
             category,
-            stock: parsedStock,
-            image: imageUrl,
+            stock: parseInt(stock),
+            image,
             reviews: [],
             avgRating: 0
         };
